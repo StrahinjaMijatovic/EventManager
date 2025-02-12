@@ -3,6 +3,8 @@ using Marten;
 using Carter;
 using Azure.Storage.Blobs;
 using DotNetEnv;
+using Microsoft.AspNetCore.Identity;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,17 +21,9 @@ builder.Services.ConfigureMarten(postgresConnection);
 var blobServiceClient = new BlobServiceClient(azureBlobStorage);
 builder.Services.AddSingleton(blobServiceClient);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowLocalhost5173",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173") // Frontend URL
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
-        });
-});
+
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 
 builder.Services.AddCarter();
 
@@ -37,6 +31,7 @@ var app = builder.Build();
 
 app.MapCarter();
 
-app.UseCors("AllowLocalhost5173");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();
